@@ -1,15 +1,22 @@
 local cache = require('nx.cache')
 local files = require('nx.files')
 
----@class nx.NxWorkspace
+---@class (exact) nx.NxWorkspace
 ---@field name string
 ---@field path string
 
----@class nx.NxProject
+---@class (exact) nx.NxProject
 ---@field name string
 ---@field projectType? string
 ---@field sourceRoot? string
----@field targets? table<string, table>[]
+---@field targets? table<string, nx.NxTarget>
+
+---@generic TOptions : table<string, any>
+---@class (exact) nx.NxTarget<TOptions> : table<string, any>
+---@field executor string
+---@field outputs string[]
+---@field options `TOptions``
+---@field configurations table<string, any>
 
 ---@param path string
 local function load_project(path)
@@ -90,6 +97,7 @@ end
 
 -- Get the neearest project to the given path
 ---@param path string?
+---@return nx.NxProject?
 function M.project_from_path(path)
   -- Check for this paths cache
   local project = cache.get('project.' .. path)
