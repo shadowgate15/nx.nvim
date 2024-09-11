@@ -4,6 +4,24 @@ local dependent_plugins = {
   'overseer',
 }
 
+---@param default_opts? neotest.CoreConfig
+local function setup_neotest_project(default_opts)
+  if require('nx.workspace').try_workspace() then
+    require('neotest').setup_project(
+      vim.fn.getcwd(),
+      vim.tbl_extend('force', default_opts or {}, {
+        adapters = {
+          ['nx.neotest'] = {},
+        },
+      })
+    )
+  end
+
+  if default_opts then
+    require('neotest').setup_project(vim.fn.getcwd(), default_opts)
+  end
+end
+
 local M = {}
 
 setmetatable(M, {
@@ -38,6 +56,19 @@ function M.setup(opts)
       require('nx.' .. plugin).setup()
     end
   end
+end
+
+-- Setup neotest to listen for dir changes and setup the project
+---@param default_opts? neotest.CoreConfig
+function M.setup_neotest(default_opts)
+  setup_neotest_project(default_opts)
+
+  vim.api.nvim_create_autocmd('DirChanged', {
+    callback = function()
+      setup_neotest_project(default_opts)
+    end,
+    pattern = 'global',
+  })
 end
 
 return M
