@@ -89,7 +89,9 @@ function M.projects()
   })
 
   for _, path in ipairs(project_paths) do
-    table.insert(projects, load_project(path))
+    if not string.find(path, 'node_modules') then
+      table.insert(projects, load_project(path))
+    end
   end
 
   return projects
