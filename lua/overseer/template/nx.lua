@@ -61,31 +61,25 @@ function M.generator(opts, cb)
     return cb({})
   end
 
-  local projects = workspace.projects()
-
   ---@type overseer.TemplateDefinition[]
   local ret = {}
 
-  for _, p in ipairs(projects) do
-    if p.targets then
-      for key, _ in pairs(p.targets) do
-        local override = { name = string.format('nx[%s] %s', p.name, key) }
+  for key, _ in pairs(project.targets) do
+    local override = { name = string.format('nx[%s] %s', project.name, key) }
 
-        if p.name == project.name then
-          -- Override priority so the nearest show up first
-          override.priority = 58
-        end
-
-        table.insert(
-          ret,
-          overseer.wrap_template(tmpl, override, {
-            cwd = cwd,
-            target = key,
-            project = p.name,
-          })
-        )
-      end
+    if project.name == project.name then
+      -- Override priority so the nearest show up first
+      override.priority = 58
     end
+
+    table.insert(
+      ret,
+      overseer.wrap_template(tmpl, override, {
+        cwd = cwd,
+        target = key,
+        project = project.name,
+      })
+    )
   end
 
   cb(ret)
