@@ -1,22 +1,19 @@
-local action_state = require('telescope.actions.state')
-local actions = require('telescope.actions')
-local conf = require('telescope.config').values
-local finders = require('telescope.finders')
-local pickers = require('telescope.pickers')
-
-local displayers = require('nx.telescope.displayers')
-local workspace = require('nx.workspace')
-
 local M = {}
 
 function M.projects(opts)
   opts = opts or {}
+
+  local pickers = require('telescope.pickers')
+  local finders = require('telescope.finders')
+  local conf = require('telescope.config').values
 
   pickers
     .new(opts, {
       prompt_title = 'Nx Projects',
       finder = finders.new_dynamic({
         fn = function()
+          local workspace = require('nx.workspace')
+
           return workspace.projects()
         end,
         ---@param entry nx.NxProject
@@ -24,6 +21,8 @@ function M.projects(opts)
           return {
             value = entry,
             display = function(e)
+              local displayers = require('nx.telescope.displayers')
+
               local projectType
 
               if e.value.projectType then
@@ -44,6 +43,8 @@ function M.projects(opts)
       }),
       sorter = conf.generic_sorter(opts),
       attach_mappings = function(prompt_bufnr, map)
+        local actions = require('telescope.actions')
+
         actions.select_default:replace(function()
           actions.close(prompt_bufnr)
         end)

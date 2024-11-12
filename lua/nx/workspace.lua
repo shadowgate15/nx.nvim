@@ -1,6 +1,3 @@
-local cache = require('nx.cache')
-local files = require('nx.files')
-
 ---@class (exact) nx.NxWorkspace
 ---@field name string
 ---@field path string
@@ -20,7 +17,10 @@ local files = require('nx.files')
 
 ---@param path string
 local function load_project(path)
+  local files = require('nx.files')
+
   local project = files.read_json(path)
+  local cache = require('nx.cache')
 
   cache.set('project.' .. project.name, project)
   cache.set('project.' .. path, project)
@@ -33,6 +33,8 @@ local M = {}
 -- Attempt to get the current workspace
 ---@return nx.NxWorkspace?
 function M.try_workspace()
+  local cache = require('nx.cache')
+
   -- Check the cache
   ---@type nx.NxWorkspace
   local workspace = cache.get('workspace')
@@ -40,6 +42,8 @@ function M.try_workspace()
   if workspace then
     return workspace
   end
+
+  local files = require('nx.files')
 
   -- Get the workspace
   local path = files.find_nearest('nx.json')
@@ -74,6 +78,8 @@ end
 -- Get all the projects
 ---@return nx.NxProject[]
 function M.projects()
+  local cache = require('nx.cache')
+
   local workspace = M.workspace()
 
   ---@type nx.NxProject[]
@@ -82,6 +88,8 @@ function M.projects()
   if #projects > 0 then
     return projects
   end
+
+  local files = require('nx.files')
 
   local project_paths = files.find_all('project.json', {
     dir = workspace.path,
@@ -101,12 +109,16 @@ end
 ---@param path string?
 ---@return nx.NxProject?
 function M.project_from_path(path)
+  local cache = require('nx.cache')
+
   -- Check for this paths cache
   local project = cache.get('project.' .. path)
 
   if project then
     return project
   end
+
+  local files = require('nx.files')
 
   -- Find the project
   local project_path = files.find_nearest('project.json', {

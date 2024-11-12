@@ -1,6 +1,3 @@
-local overseer = require('overseer')
-local workspace = require('nx.workspace')
-
 ---@type overseer.TemplateFileDefinition
 local tmpl = {
   name = 'nx',
@@ -30,6 +27,8 @@ local tmpl = {
 local M = { name = 'nx', module = 'nx' }
 
 function M.cache_key(opts)
+  local workspace = require('nx.workspace')
+
   local project = workspace.project_from_path(opts.dir)
 
   if project then
@@ -39,6 +38,8 @@ end
 
 M.condition = {
   callback = function()
+    local workspace = require('nx.workspace')
+
     local w = workspace.try_workspace()
 
     if not w then
@@ -54,6 +55,8 @@ M.condition = {
 }
 
 function M.generator(opts, cb)
+  local workspace = require('nx.workspace')
+
   local cwd = workspace.workspace().path
   local project = workspace.project_from_path(opts.dir)
 
@@ -71,6 +74,8 @@ function M.generator(opts, cb)
       -- Override priority so the nearest show up first
       override.priority = 58
     end
+
+    local overseer = require('overseer')
 
     table.insert(
       ret,

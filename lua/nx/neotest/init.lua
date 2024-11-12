@@ -3,7 +3,7 @@ local M = {}
 function M.setup() end
 
 -- Get the jest command
-function M.jest_command() 
+function M.jest_command()
   if require('nx.workspace').try_workspace() then
     return 'yarn jest'
   end
