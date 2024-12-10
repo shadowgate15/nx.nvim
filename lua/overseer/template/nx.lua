@@ -7,12 +7,17 @@ local tmpl = {
     target = { type = 'string', desc = 'Target to run' },
     args = { optional = true, type = 'list', delimiter = ' ' },
     project = { optional = true, type = 'string', desc = 'Project to run' },
+    configuration = { optional = true, type = 'string', desc = 'Configuration' },
   },
   builder = function(params)
     local cmd = { 'nx', params.target }
 
     if params.project then
       table.insert(cmd, params.project)
+    end
+
+    if params.configuration then
+      table.insert(cmd, '--configuration ' .. params.configuration)
     end
 
     return {
@@ -22,6 +27,20 @@ local tmpl = {
     }
   end,
 }
+
+local function shallowcopy(orig)
+  local orig_type = type(orig)
+  local copy
+  if orig_type == 'table' then
+    copy = {}
+    for orig_key, orig_value in pairs(orig) do
+      copy[orig_key] = orig_value
+    end
+  else -- number, string, boolean, etc
+    copy = orig
+  end
+  return copy
+end
 
 ---@type overseer.TemplateProvider
 local M = { name = 'nx', module = 'nx' }
@@ -67,13 +86,11 @@ function M.generator(opts, cb)
   ---@type overseer.TemplateDefinition[]
   local ret = {}
 
-  for key, _ in pairs(project.targets) do
-    local override = { name = string.format('nx[%s] %s', project.name, key) }
-
-    if project.name == project.name then
-      -- Override priority so the nearest show up first
-      override.priority = 58
-    end
+  for key, val in pairs(project.targets) do
+    local override = {
+      name = string.format('nx[%s] %s', project.name, key),
+      priority = 58,
+    }
 
     local overseer = require('overseer')
 
@@ -85,6 +102,23 @@ function M.generator(opts, cb)
         project = project.name,
       })
     )
+
+    if val.configurations ~= nil then
+      for configKey, _ in pairs(val.configurations) do
+        local configOverride = shallowcopy(override)
+        configOverride.name = string.format('nx[%s] %s:%s', project.name, key, configKey)
+
+        table.insert(
+          ret,
+          overseer.wrap_template(tmpl, configOverride, {
+            cwd = cwd,
+            target = key,
+            project = project.name,
+            configuration = configKey,
+          })
+        )
+      end
+    end
   end
 
   cb(ret)

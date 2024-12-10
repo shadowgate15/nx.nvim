@@ -13,7 +13,7 @@
 ---@field executor string
 ---@field outputs string[]
 ---@field options `TOptions``
----@field configurations table<string, any>
+---@field configurations? table<string, any>
 
 ---@param path string
 local function load_project(path)
