@@ -97,21 +97,24 @@ function M.projects(workspace_root, on_select)
         prompt = 'Nx Projects> ',
         previewer = previewer,
         actions = {
-          ['default'] = function(selected, opts)
-            local actions_ok, fzf_actions = pcall(require, 'fzf-lua.actions')
-            local project_name
-            if actions_ok then
-              local _, entries = fzf_actions.normalize_selected(selected, opts)
-              project_name = entries and entries[1]
-            else
-              project_name = selected and selected[1]
-            end
-            if project_name and on_select then
-              vim.schedule(function()
-                on_select(project_name)
-              end)
-            end
-          end,
+          ['default'] = {
+            fn = function(selected, opts)
+              local actions_ok, fzf_actions = pcall(require, 'fzf-lua.actions')
+              local project_name
+              if actions_ok then
+                local _, entries = fzf_actions.normalize_selected(selected, opts)
+                project_name = entries and entries[1]
+              else
+                project_name = selected and selected[1]
+              end
+              if project_name and on_select then
+                vim.schedule(function()
+                  on_select(project_name)
+                end)
+              end
+            end,
+            header = 'select project',
+          },
         },
       })
     end)
@@ -168,21 +171,24 @@ function M.tasks(workspace_root, project, on_select)
         prompt = string.format('Nx Tasks (%s)> ', project),
         previewer = previewer,
         actions = {
-          ['default'] = function(selected, opts)
-            local actions_ok, fzf_actions = pcall(require, 'fzf-lua.actions')
-            local task_name
-            if actions_ok then
-              local _, entries = fzf_actions.normalize_selected(selected, opts)
-              task_name = entries and entries[1]
-            else
-              task_name = selected and selected[1]
-            end
-            if task_name and on_select then
-              vim.schedule(function()
-                on_select(task_name)
-              end)
-            end
-          end,
+          ['default'] = {
+            fn = function(selected, opts)
+              local actions_ok, fzf_actions = pcall(require, 'fzf-lua.actions')
+              local task_name
+              if actions_ok then
+                local _, entries = fzf_actions.normalize_selected(selected, opts)
+                task_name = entries and entries[1]
+              else
+                task_name = selected and selected[1]
+              end
+              if task_name and on_select then
+                vim.schedule(function()
+                  on_select(task_name)
+                end)
+              end
+            end,
+            header = 'run task',
+          },
         },
       })
     end)
