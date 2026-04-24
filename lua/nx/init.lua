@@ -1,7 +1,5 @@
 ---@mod nx
 
-local dependent_plugins = {}
-
 local M = {}
 
 setmetatable(M, {
@@ -22,18 +20,10 @@ setmetatable(M, {
 function M.setup(opts)
   opts = opts or {}
 
-  local config = require('nx.config')
-
-  config.setup(opts)
-
-  -- Load dependent plugins if available
-  for _, plugin in ipairs(dependent_plugins) do
-    local ok, _ = pcall(require, plugin)
-
-    if ok then
-      require('nx.' .. plugin).setup()
-    end
-  end
+  require('nx.config').setup(opts)
+  require('nx.commands').register()
+  require('nx.cache').attach_autocmds()
+  require('nx.registry').attach_self_healing()
 end
 
 return M
