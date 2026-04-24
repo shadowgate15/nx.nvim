@@ -88,13 +88,8 @@ function M.run(workspace_root, project, task)
     vim.api.nvim_create_autocmd('TermClose', {
       buffer = bufnr,
       once = true,
-      callback = function(args)
-        -- args.data carries the exit code on Neovim >= 0.10; older builds
-        -- expose it via vim.v.event.status during TermClose.
-        local exit_code = args.data
-        if exit_code == nil then
-          exit_code = vim.v.event and vim.v.event.status or -1
-        end
+      callback = function(_)
+        local exit_code = vim.v.event and vim.v.event.status or -1
         M._on_exit(workspace_root, project, task, exit_code)
       end,
       desc = 'nx.nvim: handle task exit for ' .. project .. ':' .. task,
