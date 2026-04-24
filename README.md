@@ -12,14 +12,6 @@ A plugin that provides a set of utilities for adding NX workspace support to Neo
 
 ## Supported Plugins
 
-- [neotest](/lua/nx/neotest/README.md)
-- [overseer](/lua/nx/overseer/README.md)
-- [telescope](/lua/nx/telescope/README.md)
-
 ## Usage
 
 ## Config
-
-| Key      | Description           |
-| -------- | --------------------- |
-| neotest? | Neotest configuration |

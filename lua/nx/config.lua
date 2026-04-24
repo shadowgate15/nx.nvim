@@ -1,9 +1,6 @@
 ---@class (exact) nx.Config
----@field neotest? nx.NeotestConfig
 
-local default_config = {
-  neotest = {},
-}
+local default_config = {}
 
 local M = vim.deepcopy(default_config)
 
