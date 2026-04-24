@@ -60,6 +60,188 @@ function M.register()
   vim.api.nvim_create_user_command('NxRefresh', function()
     M.nx_refresh()
   end, { desc = 'Clear Nx project cache' })
+
+  M.register_nxtask()
+end
+
+--- Parse a 'project:task' arg string into (project, task).
+--- Returns nil, nil if format is invalid.
+--- @param arg string
+--- @return string|nil, string|nil
+function M._parse_key(arg)
+  if not arg then return nil, nil end
+  local colon = arg:find(':', 1, true)
+  if not colon then return nil, nil end
+  local project = arg:sub(1, colon - 1)
+  local task = arg:sub(colon + 1)
+  if project == '' or task == '' then return nil, nil end
+  return project, task
+end
+
+--- Open a fzf-lua picker of all backgrounded/exited tasks for this workspace.
+--- Default action foregrounds, ctrl-x kills.
+function M.nx_task_list()
+  M._with_workspace(function(root)
+    local registry = require('nx.registry')
+    local entries = registry.list(root)
+
+    if #entries == 0 then
+      vim.notify('nx.nvim: No tasks for this workspace.', vim.log.levels.INFO)
+      return
+    end
+
+    local ok, fzf = pcall(require, 'fzf-lua')
+    if not ok then
+      vim.notify('nx.nvim: fzf-lua is required (ibhagwan/fzf-lua).', vim.log.levels.ERROR)
+      return
+    end
+
+    local display_list = {}
+    local display_to_entry = {}
+    for _, e in ipairs(entries) do
+      local status_str = e.status
+      if e.exit_code ~= nil then
+        status_str = status_str .. ' code=' .. e.exit_code
+      end
+      local disp = string.format('%s:%s [%s]', e.project, e.task, status_str)
+      table.insert(display_list, disp)
+      display_to_entry[disp] = e
+    end
+
+    fzf.fzf_exec(display_list, {
+      prompt = 'Nx Tasks> ',
+      actions = {
+        ['default'] = function(selected, opts)
+          local actions_ok, fzf_actions = pcall(require, 'fzf-lua.actions')
+          local disp
+          if actions_ok then
+            local _, entries_sel = fzf_actions.normalize_selected(selected, opts)
+            disp = entries_sel and entries_sel[1]
+          else
+            disp = selected and selected[1]
+          end
+          local e = disp and display_to_entry[disp]
+          if e then
+            vim.schedule(function()
+              require('nx.terminal').foreground(e.workspace_root, e.project, e.task)
+            end)
+          end
+        end,
+        ['ctrl-x'] = function(selected, opts)
+          local actions_ok, fzf_actions = pcall(require, 'fzf-lua.actions')
+          local disp
+          if actions_ok then
+            local _, entries_sel = fzf_actions.normalize_selected(selected, opts)
+            disp = entries_sel and entries_sel[1]
+          else
+            disp = selected and selected[1]
+          end
+          local e = disp and display_to_entry[disp]
+          if e then
+            vim.schedule(function()
+              require('nx.terminal').kill(e.workspace_root, e.project, e.task)
+              M.nx_task_list()
+            end)
+          end
+        end,
+      },
+    })
+  end)
+end
+
+--- Foreground a specific task by 'project:task' arg, or pick from registry.
+--- @param arg? string 'project:task' format
+function M.nx_task_foreground(arg)
+  M._with_workspace(function(root)
+    if arg then
+      local project, task = M._parse_key(arg)
+      if not project then
+        vim.notify(
+          'nx.nvim: Invalid argument "' .. arg .. '". Expected format: project:task',
+          vim.log.levels.ERROR
+        )
+        return
+      end
+      require('nx.terminal').foreground(root, project, task)
+      return
+    end
+
+    local entries = require('nx.registry').list(root)
+    if #entries == 0 then
+      vim.notify('nx.nvim: No tasks to foreground.', vim.log.levels.INFO)
+    elseif #entries == 1 then
+      local e = entries[1]
+      require('nx.terminal').foreground(root, e.project, e.task)
+    else
+      M.nx_task_list()
+    end
+  end)
+end
+
+--- Kill a specific task by 'project:task' arg, or pick from registry.
+--- @param arg? string 'project:task' format
+function M.nx_task_kill(arg)
+  M._with_workspace(function(root)
+    if arg then
+      local project, task = M._parse_key(arg)
+      if not project then
+        vim.notify(
+          'nx.nvim: Invalid argument "' .. arg .. '". Expected format: project:task',
+          vim.log.levels.ERROR
+        )
+        return
+      end
+      require('nx.terminal').kill(root, project, task)
+      return
+    end
+
+    local entries = require('nx.registry').list(root)
+    if #entries == 0 then
+      vim.notify('nx.nvim: No tasks to kill.', vim.log.levels.INFO)
+    elseif #entries == 1 then
+      local e = entries[1]
+      require('nx.terminal').kill(root, e.project, e.task)
+    else
+      M.nx_task_list()
+    end
+  end)
+end
+
+--- Dispatch :NxTask subcommands.
+--- @param args_table table from nvim_create_user_command callback opts
+function M.nx_task(args_table)
+  local fargs = args_table.fargs or {}
+  local sub = fargs[1]
+
+  if not sub or sub == 'list' then
+    M.nx_task_list()
+  elseif sub == 'foreground' or sub == 'fg' then
+    M.nx_task_foreground(fargs[2])
+  elseif sub == 'kill' then
+    M.nx_task_kill(fargs[2])
+  else
+    vim.notify('nx.nvim: Unknown :NxTask subcommand: ' .. sub .. '. Use: list, foreground, kill', vim.log.levels.ERROR)
+  end
+end
+
+--- Register the :NxTask user command. Called from register().
+--- NOTE: This extends the existing register() function — call it after register() in setup().
+function M.register_nxtask()
+  vim.api.nvim_create_user_command('NxTask', function(opts)
+    M.nx_task(opts)
+  end, {
+    nargs = '*',
+    complete = function(arg_lead, cmdline, _)
+      local parts = vim.split(cmdline, '%s+')
+      if #parts <= 2 then
+        return vim.tbl_filter(function(s)
+          return s:find(arg_lead, 1, true) == 1
+        end, { 'list', 'foreground', 'kill' })
+      end
+      return {}
+    end,
+    desc = 'Manage backgrounded Nx tasks',
+  })
 end
 
 return M
