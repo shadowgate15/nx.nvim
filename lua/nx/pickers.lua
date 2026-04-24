@@ -47,21 +47,30 @@ function M.projects(workspace_root, on_select)
       local previewer = nil
       if preview_enabled then
         previewer = {
-          fn = function(items)
-            local name = items[1]
-            if not name then
-              return ''
-            end
-            -- Try to get from cache synchronously (should be a hit after get_projects)
-            local cached_entry = cache.state()[workspace_root]
-            if cached_entry and cached_entry.project_configs[name] then
-              return M._pretty(vim.json.encode(cached_entry.project_configs[name]))
-            end
-            -- Kick off async fetch; return placeholder
-            cache.get_project(workspace_root, name, function() end)
-            return '(Loading...)'
+          cmd = 'cat',
+          _ctor = function()
+            return {
+              new = function(self, opts)
+                self.opts = opts
+                return self
+              end,
+              cmdline = function(self)
+                return require('fzf-lua.shell').stringify_data(function(items)
+                  local name = items and items[1]
+                  if not name then
+                    return ''
+                  end
+                  local cached_entry = cache.state()[workspace_root]
+                  if cached_entry and cached_entry.project_configs[name] then
+                    return M._pretty(vim.json.encode(cached_entry.project_configs[name]))
+                  end
+                  -- Kick off async fetch; return placeholder
+                  cache.get_project(workspace_root, name, function() end)
+                  return '(Loading ' .. name .. '...)'
+                end, self.opts, '{}')
+              end,
+            }
           end,
-          field_index = '{}',
         }
       end
 
@@ -131,18 +140,28 @@ function M.tasks(workspace_root, project, on_select)
       local previewer = nil
       if preview_enabled then
         previewer = {
-          fn = function(items)
-            local task_name = items[1]
-            if not task_name then
-              return ''
-            end
-            local target = targets[task_name]
-            if not target then
-              return 'no task config'
-            end
-            return M._pretty(vim.json.encode(target))
+          cmd = 'cat',
+          _ctor = function()
+            return {
+              new = function(self, opts)
+                self.opts = opts
+                return self
+              end,
+              cmdline = function(self)
+                return require('fzf-lua.shell').stringify_data(function(items)
+                  local task_name = items and items[1]
+                  if not task_name then
+                    return ''
+                  end
+                  local target = targets[task_name]
+                  if not target then
+                    return 'no task config'
+                  end
+                  return M._pretty(vim.json.encode(target))
+                end, self.opts, '{}')
+              end,
+            }
           end,
-          field_index = '{}',
         }
       end
 
