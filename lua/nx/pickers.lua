@@ -80,10 +80,49 @@ local function make_previewer(preview_fn)
     if not result then return end
     local buf = self:get_tmp_buffer()
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(result, '\n', { plain = true }))
+    -- Render the preview as JSONC so syntax highlighting (and tree-sitter, when
+    -- a `jsonc` parser is installed) kicks in on the project/task config dump.
+    pcall(vim.api.nvim_set_option_value, 'filetype', 'jsonc', { buf = buf })
     self:set_preview_buf(buf)
   end
 
   return cls
+end
+
+local function _is_array(tbl)
+  if vim.islist then return vim.islist(tbl) end
+  return vim.tbl_islist(tbl)
+end
+
+local function _pretty_value(value, indent_str, depth)
+  if value == nil or value == vim.NIL then return 'null' end
+  if type(value) ~= 'table' then
+    return vim.json.encode(value)
+  end
+
+  local pad = string.rep(indent_str, depth + 1)
+  local close_pad = string.rep(indent_str, depth)
+
+  if next(value) == nil then
+    return getmetatable(value) == nil and '[]' or '{}'
+  end
+
+  if _is_array(value) then
+    local parts = {}
+    for _, item in ipairs(value) do
+      table.insert(parts, pad .. _pretty_value(item, indent_str, depth + 1))
+    end
+    return '[\n' .. table.concat(parts, ',\n') .. '\n' .. close_pad .. ']'
+  end
+
+  local keys = vim.tbl_keys(value)
+  table.sort(keys)
+  local parts = {}
+  for _, key in ipairs(keys) do
+    local rendered = _pretty_value(value[key], indent_str, depth + 1)
+    table.insert(parts, pad .. vim.json.encode(tostring(key)) .. ': ' .. rendered)
+  end
+  return '{\n' .. table.concat(parts, ',\n') .. '\n' .. close_pad .. '}'
 end
 
 function M._pretty(json_string)
@@ -91,7 +130,10 @@ function M._pretty(json_string)
   if not ok then
     return json_string
   end
-  return vim.inspect(decoded, { newline = '\n', indent = '  ' })
+  if type(decoded) ~= 'table' then
+    return vim.json.encode(decoded)
+  end
+  return _pretty_value(decoded, '  ', 0)
 end
 
 function M.projects(workspace_root, on_select)
