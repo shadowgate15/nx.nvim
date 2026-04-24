@@ -43,6 +43,11 @@ function M.projects(workspace_root, on_select)
       return
     end
 
+    -- Pre-warm the config cache for all projects so preview fn has data immediately.
+    for _, name in ipairs(projects) do
+      cache.get_project(workspace_root, name, function() end)
+    end
+
     vim.schedule(function()
       local preview = nil
       if preview_enabled then
@@ -56,8 +61,6 @@ function M.projects(workspace_root, on_select)
             if cached_entry and cached_entry.project_configs[name] then
               return M._pretty(vim.json.encode(cached_entry.project_configs[name]))
             end
-            -- Kick off async fetch; return placeholder
-            cache.get_project(workspace_root, name, function() end)
             return '(Loading ' .. name .. '...)'
           end,
           field_index = '{}',
