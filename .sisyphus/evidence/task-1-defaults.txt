@@ -1,0 +1,20 @@
+{
+  cache = {
+    auto_invalidate = true,
+    watch_files = { "nx.json", "project.json" }
+  },
+  cli = {
+    env = {},
+    timeout_ms = 30000,
+    workspace_root_env = "NX_WORKSPACE_ROOT_PATH"
+  },
+  pickers = {
+    preview = true
+  },
+  runner = {
+    keymaps = {
+      background = "<C-b>"
+    },
+    win = {}
+  }
+}

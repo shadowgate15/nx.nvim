@@ -1,0 +1,23 @@
+{
+  "active_plan": "/Users/TS75642/Documents/projects/nx.nvim/.sisyphus/plans/nx-nvim-pickers-and-runner.md",
+  "started_at": "2026-04-24T12:06:31.381Z",
+  "session_ids": [
+    "ses_240e57e87ffeklGFpqSjvBU9Kg"
+  ],
+  "session_origins": {
+    "ses_240e57e87ffeklGFpqSjvBU9Kg": "direct"
+  },
+  "plan_name": "nx-nvim-pickers-and-runner",
+  "agent": "atlas",
+  "task_sessions": {
+    "todo:1": {
+      "task_key": "todo:1",
+      "task_label": "1",
+      "task_title": "**Config schema extension**",
+      "session_id": "ses_2409c3457ffevECxnZ9xzUN412",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-04-24T12:09:18.154Z"
+    }
+  }
+}

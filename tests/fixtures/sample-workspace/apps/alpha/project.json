@@ -1,0 +1,17 @@
+{
+  "name": "alpha",
+  "root": "apps/alpha",
+  "sourceRoot": "apps/alpha/src",
+  "projectType": "application",
+  "tags": ["scope:app"],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": { "command": "echo alpha-build" }
+    },
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": { "command": "echo alpha-serve" }
+    }
+  }
+}
