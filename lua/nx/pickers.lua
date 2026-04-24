@@ -44,39 +44,29 @@ function M.projects(workspace_root, on_select)
     end
 
     vim.schedule(function()
-      local previewer = nil
+      local preview = nil
       if preview_enabled then
-        previewer = {
-          cmd = 'cat',
-          _ctor = function()
-            return {
-              new = function(self, opts)
-                self.opts = opts
-                return self
-              end,
-              cmdline = function(self)
-                return require('fzf-lua.shell').stringify_data(function(items)
-                  local name = items and items[1]
-                  if not name then
-                    return ''
-                  end
-                  local cached_entry = cache.state()[workspace_root]
-                  if cached_entry and cached_entry.project_configs[name] then
-                    return M._pretty(vim.json.encode(cached_entry.project_configs[name]))
-                  end
-                  -- Kick off async fetch; return placeholder
-                  cache.get_project(workspace_root, name, function() end)
-                  return '(Loading ' .. name .. '...)'
-                end, self.opts, '{}')
-              end,
-            }
+        preview = {
+          fn = function(items)
+            local name = items and items[1]
+            if not name then
+              return ''
+            end
+            local cached_entry = cache.state()[workspace_root]
+            if cached_entry and cached_entry.project_configs[name] then
+              return M._pretty(vim.json.encode(cached_entry.project_configs[name]))
+            end
+            -- Kick off async fetch; return placeholder
+            cache.get_project(workspace_root, name, function() end)
+            return '(Loading ' .. name .. '...)'
           end,
+          field_index = '{}',
         }
       end
 
       fzf.fzf_exec(projects, {
         prompt = 'Nx Projects> ',
-        previewer = previewer,
+        preview = preview,
         actions = {
           ['default'] = function(selected, opts)
             local actions_ok, fzf_actions = pcall(require, 'fzf-lua.actions')
@@ -137,37 +127,27 @@ function M.tasks(workspace_root, project, on_select)
     end
 
     vim.schedule(function()
-      local previewer = nil
+      local preview = nil
       if preview_enabled then
-        previewer = {
-          cmd = 'cat',
-          _ctor = function()
-            return {
-              new = function(self, opts)
-                self.opts = opts
-                return self
-              end,
-              cmdline = function(self)
-                return require('fzf-lua.shell').stringify_data(function(items)
-                  local task_name = items and items[1]
-                  if not task_name then
-                    return ''
-                  end
-                  local target = targets[task_name]
-                  if not target then
-                    return 'no task config'
-                  end
-                  return M._pretty(vim.json.encode(target))
-                end, self.opts, '{}')
-              end,
-            }
+        preview = {
+          fn = function(items)
+            local task_name = items and items[1]
+            if not task_name then
+              return ''
+            end
+            local target = targets[task_name]
+            if not target then
+              return 'no task config'
+            end
+            return M._pretty(vim.json.encode(target))
           end,
+          field_index = '{}',
         }
       end
 
       fzf.fzf_exec(task_names, {
         prompt = string.format('Nx Tasks (%s)> ', project),
-        previewer = previewer,
+        preview = preview,
         actions = {
           ['default'] = function(selected, opts)
             local actions_ok, fzf_actions = pcall(require, 'fzf-lua.actions')
