@@ -1,7 +1,7 @@
 -- AC4-4: BufWritePost on nx.json triggers invalidation
 local cli = require('nx.cli')
-cli.show_projects = function(ws_root, on_done)
-  on_done({ ok = true, projects = { 'alpha' } })
+cli.show_projects_by_type = function(_, kind, on_done)
+  on_done({ ok = true, projects = (kind == 'app') and { 'alpha' } or {} })
 end
 
 local ws = require('nx.workspace')

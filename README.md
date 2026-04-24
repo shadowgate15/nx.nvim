@@ -59,6 +59,28 @@ require('nx').setup({
 | `:NxRefresh` | Clear cached project data for the current workspace. Run after changing `project.json` or `nx.json`. |
 | `:NxTask [list\|foreground\|kill] [project:task]` | Manage backgrounded task floats. Defaults to `list`. |
 
+### Project picker layout
+
+`:NxProject` groups entries by Nx project type, ordered apps → libs → e2e, and prefixes each entry with a colored label so the type is visible at a glance:
+
+```
+[app] web
+[app] admin
+[lib] shared-ui
+[lib] utils
+[e2e] web-e2e
+```
+
+The labels are populated from `nx show projects --type=<app|lib|e2e>` (called once per type, in parallel, on cache miss), so the classification matches Nx's own — including projects that Nx implicitly reclassifies as `e2e`. Override the colors by defining the highlight groups before `nx.nvim` loads:
+
+```lua
+vim.api.nvim_set_hl(0, 'NxKindApp', { fg = '#7aa2f7' })
+vim.api.nvim_set_hl(0, 'NxKindLib', { fg = '#9ece6a' })
+vim.api.nvim_set_hl(0, 'NxKindE2e', { fg = '#e0af68' })
+```
+
+Defaults link to `Function`, `String`, and `WarningMsg` respectively.
+
 ### :NxTask subcommands
 
 | Subcommand | Description |

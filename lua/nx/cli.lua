@@ -94,6 +94,33 @@ function M.show_projects(workspace_root, on_done)
   })
 end
 
+--- Fetch project names of a single Nx project type ('app' | 'lib' | 'e2e').
+--- Wraps `nx show projects --type=<type> --json`. Failure is non-fatal: an
+--- empty list is returned when nx exits non-zero or emits non-array JSON
+--- (older nx versions / workspaces with no projects of that type).
+--- @param workspace_root string
+--- @param kind 'app'|'lib'|'e2e'
+--- @param on_done fun(result: {ok: boolean, projects?: string[], error?: string})
+function M.show_projects_by_type(workspace_root, kind, on_done)
+  M.exec({ 'show', 'projects', '--type=' .. kind, '--json' }, {
+    cwd = workspace_root,
+    on_done = function(result)
+      if result.code ~= 0 then
+        -- Treat as empty rather than fatal: a workspace with no apps (or an
+        -- nx version that doesn't recognize --type) shouldn't break the picker.
+        on_done({ ok = true, projects = {} })
+        return
+      end
+      local ok, parsed = pcall(vim.json.decode, result.stdout, { luanil = { object = true, array = true } })
+      if not ok or type(parsed) ~= 'table' then
+        on_done({ ok = true, projects = {} })
+        return
+      end
+      on_done({ ok = true, projects = parsed })
+    end,
+  })
+end
+
 --- Fetch a single project's configuration.
 --- @param workspace_root string
 --- @param name string project name

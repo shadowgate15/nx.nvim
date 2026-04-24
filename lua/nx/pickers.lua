@@ -2,6 +2,53 @@
 
 local M = {}
 
+-- Display order is fixed (apps → libs → e2e) and the bracket strings are
+-- the same width (5 chars) so the picker stays vertically aligned without
+-- extra padding logic.
+local KIND_LABELS = { app = '[app]', lib = '[lib]', e2e = '[e2e]' }
+local KIND_HL = { app = 'NxKindApp', lib = 'NxKindLib', e2e = 'NxKindE2e' }
+local DEFAULT_KIND = 'lib'
+
+local _hl_initialized = false
+
+local function _ensure_highlights()
+  if _hl_initialized then return end
+  _hl_initialized = true
+  -- `default = true` lets users override these by defining the group first.
+  vim.api.nvim_set_hl(0, 'NxKindApp', { link = 'Function', default = true })
+  vim.api.nvim_set_hl(0, 'NxKindLib', { link = 'String', default = true })
+  vim.api.nvim_set_hl(0, 'NxKindE2e', { link = 'WarningMsg', default = true })
+end
+
+--- Strip the leading `[kind] ` prefix added by M._format_entry.
+--- @param entry string
+--- @return string
+function M._strip_prefix(entry)
+  if not entry then return entry end
+  local stripped = entry:gsub('^%s*\27%[[%d;]*m?%[%w+%]\27%[[%d;]*m?%s*', '')
+  if stripped == entry then
+    stripped = entry:gsub('^%s*%[%w+%]%s*', '')
+  end
+  return stripped
+end
+
+--- Build a display row: "<colored-prefix> <project-name>".
+--- Falls back to plain text when fzf-lua/utils is unavailable (e.g. in tests).
+--- @param name string
+--- @param kind 'app'|'lib'|'e2e'
+--- @return string
+function M._format_entry(name, kind)
+  local label = KIND_LABELS[kind] or KIND_LABELS[DEFAULT_KIND]
+  local hl = KIND_HL[kind] or KIND_HL[DEFAULT_KIND]
+  local ok, utils = pcall(require, 'fzf-lua.utils')
+  if ok and type(utils.ansi_from_hl) == 'function' then
+    _ensure_highlights()
+    local colored = utils.ansi_from_hl(hl, label)
+    return colored .. ' ' .. name
+  end
+  return label .. ' ' .. name
+end
+
 ---@return fzf-lua.previewer.Builtin
 local function make_previewer(preview_fn)
   local Builtin = require('fzf-lua.previewer.builtin')
@@ -70,12 +117,19 @@ function M.projects(workspace_root, on_select)
       return
     end
 
+    local kinds = result.project_kinds or {}
+    local entries = {}
+    for _, name in ipairs(projects) do
+      table.insert(entries, M._format_entry(name, kinds[name] or DEFAULT_KIND))
+    end
+
     vim.schedule(function()
       local previewer = nil
       if preview_enabled then
         previewer = {
           _ctor = function()
-            return make_previewer(function(name, cb)
+            return make_previewer(function(entry_str, cb)
+              local name = M._strip_prefix(entry_str)
               local cached_entry = cache.state()[workspace_root]
               if cached_entry and cached_entry.project_configs[name] then
                 cb(M._pretty(vim.json.encode(cached_entry.project_configs[name])))
@@ -93,21 +147,22 @@ function M.projects(workspace_root, on_select)
         }
       end
 
-      fzf.fzf_exec(projects, {
+      fzf.fzf_exec(entries, {
         prompt = 'Nx Projects> ',
         previewer = previewer,
         actions = {
           ['default'] = {
             fn = function(selected, opts)
               local actions_ok, fzf_actions = pcall(require, 'fzf-lua.actions')
-              local project_name
+              local raw
               if actions_ok then
-                local _, entries = fzf_actions.normalize_selected(selected, opts)
-                project_name = entries and entries[1]
+                local _, normalized = fzf_actions.normalize_selected(selected, opts)
+                raw = normalized and normalized[1]
               else
-                project_name = selected and selected[1]
+                raw = selected and selected[1]
               end
-              if project_name and on_select then
+              local project_name = raw and M._strip_prefix(raw)
+              if project_name and project_name ~= '' and on_select then
                 vim.schedule(function()
                   on_select(project_name)
                 end)

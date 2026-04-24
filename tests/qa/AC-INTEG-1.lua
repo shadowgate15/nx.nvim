@@ -37,8 +37,14 @@ ws.root = function() return '/ws-integ' end
 local cli = require('nx.cli')
 cli._bin_cache = { ['/ws-integ'] = '/fake/nx' }
 cli.resolve_bin = function() return '/fake/nx' end
-cli.show_projects = function(_, on_done)
-  on_done({ ok = true, projects = { 'alpha', 'beta' } })
+cli.show_projects_by_type = function(_, kind, on_done)
+  if kind == 'app' then
+    on_done({ ok = true, projects = { 'alpha' } })
+  elseif kind == 'lib' then
+    on_done({ ok = true, projects = { 'beta' } })
+  else
+    on_done({ ok = true, projects = {} })
+  end
 end
 cli.show_project = function(_, name, on_done)
   on_done({

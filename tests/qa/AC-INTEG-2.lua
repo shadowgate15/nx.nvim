@@ -6,9 +6,9 @@ local cli = require('nx.cli')
 cli._bin_cache = { ['/ws-integ2'] = '/fake/nx' }
 cli.resolve_bin = function() return '/fake/nx' end
 local call_count = 0
-cli.show_projects = function(_, on_done)
+cli.show_projects_by_type = function(_, kind, on_done)
   call_count = call_count + 1
-  on_done({ ok = true, projects = { 'alpha' } })
+  on_done({ ok = true, projects = (kind == 'app') and { 'alpha' } or {} })
 end
 
 local ws = require('nx.workspace')
@@ -37,7 +37,8 @@ vim.defer_fn(function()
     cache.get_projects('/ws-integ2', function() end)
 
     vim.defer_fn(function()
-      local ok = had_cache and cleared and call_count == 2
+      -- 3 calls per get_projects (one per kind), invoked twice = 6.
+      local ok = had_cache and cleared and call_count == 6
       local line = ok and 'PASS: AC-INTEG-2'
         or ('FAIL: AC-INTEG-2 :: had_cache=' .. tostring(had_cache)
             .. ' cleared=' .. tostring(cleared) .. ' call_count=' .. call_count)

@@ -2,11 +2,21 @@
 
 local M = {}
 
--- Cache table: { [ws_root] = { projects=string[]|nil, project_configs={[name]=table}, fetched_at=number } }
+-- Display order is fixed: apps before libs before e2e. Used for the picker
+-- and for the flattened M.get_projects() return value.
+local KIND_ORDER = { 'app', 'lib', 'e2e' }
+
+-- Cache table:
+-- { [ws_root] = {
+--     projects               = string[]|nil,            -- flattened, ordered apps→libs→e2e
+--     projects_by_kind       = { app=string[], lib=string[], e2e=string[] }|nil,
+--     project_kinds          = { [name]=('app'|'lib'|'e2e') },
+--     project_configs        = { [name]=table },
+--     fetched_at             = number,
+-- } }
 local _cache = {}
 
 -- In-flight table: { [flight_key] = { callbacks = { fn, ... } } }
--- flight_key = 'projects::' .. ws_root  OR  'project::' .. ws_root .. '::' .. name
 local _inflight = {}
 
 local function _flight_key_projects(ws_root)
@@ -19,50 +29,110 @@ end
 
 local function _ensure_root(ws_root)
   if not _cache[ws_root] then
-    _cache[ws_root] = { projects = nil, project_configs = {}, fetched_at = 0 }
+    _cache[ws_root] = {
+      projects = nil,
+      projects_by_kind = nil,
+      project_kinds = {},
+      project_configs = {},
+      fetched_at = 0,
+    }
   end
 end
 
 --- Fetch all projects for a workspace, using cache and in-flight dedup.
+--- Issues 3 parallel `nx show projects --type=<kind>` calls on cache miss
+--- so the picker can label and order projects by Nx's authoritative
+--- classification (which includes the implicit `e2e` type).
 --- @param workspace_root string
---- @param on_done fun(result: {ok: boolean, projects?: string[], error?: string})
+--- @param on_done fun(result: {ok: boolean, projects?: string[], projects_by_kind?: {app: string[], lib: string[], e2e: string[]}, project_kinds?: table<string, string>, error?: string})
 function M.get_projects(workspace_root, on_done)
   _ensure_root(workspace_root)
 
-  -- Cache hit
-  if _cache[workspace_root].projects ~= nil then
+  local entry = _cache[workspace_root]
+
+  if entry.projects ~= nil then
     vim.schedule(function()
-      on_done({ ok = true, projects = _cache[workspace_root].projects })
+      on_done({
+        ok = true,
+        projects = entry.projects,
+        projects_by_kind = entry.projects_by_kind,
+        project_kinds = entry.project_kinds,
+      })
     end)
     return
   end
 
   local key = _flight_key_projects(workspace_root)
 
-  -- In-flight: queue this callback
   if _inflight[key] then
     table.insert(_inflight[key].callbacks, on_done)
     return
   end
 
-  -- Start new request
   _inflight[key] = { callbacks = { on_done } }
 
   local cli = require('nx.cli')
-  cli.show_projects(workspace_root, function(result)
+
+  local pending = #KIND_ORDER
+  local by_kind = { app = {}, lib = {}, e2e = {} }
+  local first_error = nil
+
+  local function finalize()
     local cbs = _inflight[key] and _inflight[key].callbacks or {}
     _inflight[key] = nil
 
-    if result.ok then
-      _ensure_root(workspace_root)
-      _cache[workspace_root].projects = result.projects
-      _cache[workspace_root].fetched_at = vim.uv.now()
+    if first_error then
+      for _, cb in ipairs(cbs) do
+        cb({ ok = false, error = first_error })
+      end
+      return
     end
 
-    for _, cb in ipairs(cbs) do
-      cb(result)
+    -- Flatten in display order, dedup names that appear under multiple types
+    -- (defensive: nx normally classifies each project under exactly one type).
+    local seen = {}
+    local flat = {}
+    local kinds = {}
+    for _, kind in ipairs(KIND_ORDER) do
+      for _, name in ipairs(by_kind[kind]) do
+        if not seen[name] then
+          seen[name] = true
+          table.insert(flat, name)
+          kinds[name] = kind
+        end
+      end
     end
-  end)
+
+    _ensure_root(workspace_root)
+    _cache[workspace_root].projects = flat
+    _cache[workspace_root].projects_by_kind = by_kind
+    _cache[workspace_root].project_kinds = kinds
+    _cache[workspace_root].fetched_at = vim.uv.now()
+
+    for _, cb in ipairs(cbs) do
+      cb({
+        ok = true,
+        projects = flat,
+        projects_by_kind = by_kind,
+        project_kinds = kinds,
+      })
+    end
+  end
+
+  for _, kind in ipairs(KIND_ORDER) do
+    cli.show_projects_by_type(workspace_root, kind, function(result)
+      if result.ok then
+        table.sort(result.projects)
+        by_kind[kind] = result.projects
+      elseif not first_error then
+        first_error = result.error
+      end
+      pending = pending - 1
+      if pending == 0 then
+        finalize()
+      end
+    end)
+  end
 end
 
 --- Fetch a single project's config, using cache and in-flight dedup.
@@ -72,7 +142,6 @@ end
 function M.get_project(workspace_root, name, on_done)
   _ensure_root(workspace_root)
 
-  -- Cache hit
   if _cache[workspace_root].project_configs[name] ~= nil then
     vim.schedule(function()
       on_done({ ok = true, project = _cache[workspace_root].project_configs[name] })
@@ -82,7 +151,6 @@ function M.get_project(workspace_root, name, on_done)
 
   local key = _flight_key_project(workspace_root, name)
 
-  -- In-flight: queue
   if _inflight[key] then
     table.insert(_inflight[key].callbacks, on_done)
     return
@@ -128,7 +196,6 @@ function M.attach_autocmds()
   local ok, conf = pcall(require, 'nx.config')
   local watch_files = (ok and conf.cache and conf.cache.watch_files) or { 'nx.json', 'project.json' }
 
-  -- Build the pattern for the autocmd
   local patterns = {}
   for _, f in ipairs(watch_files) do
     table.insert(patterns, '*/' .. f)
@@ -141,7 +208,6 @@ function M.attach_autocmds()
     group = group,
     pattern = patterns,
     callback = function(args)
-      -- Resolve workspace root from the written file's directory
       local file_dir = vim.fn.fnamemodify(args.file, ':h')
       local ws = require('nx.workspace').find_root(file_dir)
       if ws then
