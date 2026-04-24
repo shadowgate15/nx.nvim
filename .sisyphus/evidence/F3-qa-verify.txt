@@ -1,0 +1,59 @@
+F3: Real Manual QA Execution Verification
+==========================================
+Date: 2026-04-24
+Working directory: /Users/TS75642/Documents/projects/nx.nvim
+
+STEP 1: Full QA suite (run-all.sh)
+  Result: 35 passed, 0 failed
+  Status: PASS
+
+STEP 2: Smoke test (setup() loads without errors)
+  Command: nvim --headless ... -c "lua require('nx').setup({})" -c "qa!"
+  Result: exit 0, no Lua errors
+  Status: PASS
+
+STEP 3: All 4 commands registered after setup
+  NxProject:2
+  NxProjectTasks:2
+  NxRefresh:2
+  NxTask:2
+  Status: PASS (4/4 commands present, value 2 = user command)
+
+STEP 4: Workspace detection in fixture
+  Output: /Users/TS75642/Documents/projects/nx.nvim/tests/fixtures/sample-workspace
+  Note: Original step's `cd ... && nvim -u $(pwd)/...` produced wrong rtp (minimal_init prepends getcwd).
+        Re-ran using `nvim -u tests/qa/minimal_init.lua -c "cd tests/fixtures/sample-workspace"`.
+  Status: PASS
+
+STEP 5: :checkhealth nx in fixture workspace
+  Sections found: Workspace [OK], CLI [OK Nx 18.3.0], Dependencies [expected ERRs - fzf-lua/snacks not installed], Configuration [present]
+  Note: Used `:write! /tmp/nx-health.txt` rather than `:redir` to capture full output (redir produced empty file).
+  Status: PASS (all 4 required sections present)
+
+STEP 6: Forbidden patterns
+  vim.fn.system in lua/nx/   : CLEAN
+  npx in lua/nx/             : CLEAN
+  lua/nx/utils.lua           : CLEAN (does not exist)
+  plugin/nx.lua              : CLEAN (does not exist)
+  plenary in lua/nx/         : CLEAN
+  Status: PASS
+
+STEP 7: Run-all evidence file
+  Tail: "35 passed, 0 failed" / "exit=0"
+  Status: PASS
+
+STEP 8: Edge case - workspace.root() outside Nx workspace
+  Output: NIL
+  Note: Used package.path injection because /tmp dir lacks lua/nx/ in cwd.
+  Status: PASS
+
+STEP 9: All evidence files contain PASS in line 1
+  All 35 qa-*.txt evidence files start with "ACxx-y: PASS ..."
+  Note: Initial grep flagged AC14-2 as FAIL but the substring "FAIL" appears inside a PASS line
+        describing the runner correctly reporting demo-fail behavior. Verified manually.
+  Status: PASS
+
+==========================================
+SUMMARY
+Smoke test [PASS] | Full QA suite [35/35 PASS] | Commands [4/4] | Health check [PASS] | Forbidden [CLEAN] | VERDICT: APPROVE
+==========================================

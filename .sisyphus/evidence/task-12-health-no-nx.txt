@@ -1,0 +1,15 @@
+=== nx.nvim: Workspace ===
+[OK] Workspace root: /private/var/folders/mj/mbrjkh0s5wq05wtybychbr1r0000gq/T/tmp.gNdQxScDyG
+=== nx.nvim: CLI ===
+[ERROR] Nx CLI not found in node_modules/.bin or $PATH.
+  Install Nx: npm i -D nx   OR   npm i -g nx
+=== nx.nvim: Dependencies ===
+[ERROR] fzf-lua not installed (ibhagwan/fzf-lua). Required for :NxProject and :NxProjectTasks pickers.
+[ERROR] snacks.nvim not installed (folke/snacks.nvim). Required for the task runner float.
+=== nx.nvim: Configuration ===
+[INFO] cli.timeout_ms = 30000
+[INFO] cli.workspace_root_env = NX_WORKSPACE_ROOT_PATH
+[INFO] cache.auto_invalidate = true
+[INFO] cache.watch_files = { "nx.json", "project.json" }
+[INFO] runner.keymaps.background = <C-b>
+[INFO] pickers.preview = true

@@ -14,10 +14,55 @@
       "task_key": "todo:1",
       "task_label": "1",
       "task_title": "**Config schema extension**",
-      "session_id": "ses_2409c3457ffevECxnZ9xzUN412",
+      "session_id": "ses_2409a5899ffe2Q8yplcS6LxK15",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-low",
+      "updated_at": "2026-04-24T12:13:50.463Z"
+    },
+    "todo:7": {
+      "task_key": "todo:7",
+      "task_label": "7",
+      "task_title": "**Terminal runner (Snacks integration + temp-file dump)**",
+      "session_id": "ses_240930488ffeFk4B5YE6Fiznxv",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-04-24T12:23:12.122Z"
+    },
+    "todo:10": {
+      "task_key": "todo:10",
+      "task_label": "10",
+      "task_title": "**Picker chaining + main commands integration**",
+      "session_id": "ses_2408bd6aaffe8fSPNCli1uMnqW",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-low",
+      "updated_at": "2026-04-24T12:28:38.004Z"
+    },
+    "todo:11": {
+      "task_key": "todo:11",
+      "task_label": "11",
+      "task_title": "**`:NxTask` subcommands (list/foreground/kill)**",
+      "session_id": "ses_24087d050ffeqngG5Ryf4Xb2Co",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-low",
+      "updated_at": "2026-04-24T12:33:25.797Z"
+    },
+    "todo:13": {
+      "task_key": "todo:13",
+      "task_label": "13",
+      "task_title": "**Wire `setup()` to register all commands + autocmds**",
+      "session_id": "ses_2408258b6ffeGzi99BbD0WeuaZ",
+      "agent": "Sisyphus-Junior",
+      "category": "writing",
+      "updated_at": "2026-04-24T12:39:57.185Z"
+    },
+    "final-wave:f1": {
+      "task_key": "final-wave:f1",
+      "task_label": "F1",
+      "task_title": "**Plan Compliance Audit** — `oracle`",
+      "session_id": "ses_2401b2913ffedPluOkttKEEtfx",
       "agent": "Sisyphus-Junior",
       "category": "quick",
-      "updated_at": "2026-04-24T12:09:18.154Z"
+      "updated_at": "2026-04-24T14:29:45.182Z"
     }
   }
 }

@@ -1,0 +1,15 @@
+=== nx.nvim: Workspace ===
+[OK] Workspace root: /Users/TS75642/Documents/projects/nx.nvim/tests/fixtures/sample-workspace
+=== nx.nvim: CLI ===
+[OK] Nx binary: /Users/TS75642/Documents/projects/nx.nvim/tests/fixtures/sample-workspace/node_modules/.bin/nx
+[OK] Nx 18.3.0
+=== nx.nvim: Dependencies ===
+[ERROR] fzf-lua not installed (ibhagwan/fzf-lua). Required for :NxProject and :NxProjectTasks pickers.
+[ERROR] snacks.nvim not installed (folke/snacks.nvim). Required for the task runner float.
+=== nx.nvim: Configuration ===
+[INFO] cli.timeout_ms = 30000
+[INFO] cli.workspace_root_env = NX_WORKSPACE_ROOT_PATH
+[INFO] cache.auto_invalidate = true
+[INFO] cache.watch_files = { "nx.json", "project.json" }
+[INFO] runner.keymaps.background = <C-b>
+[INFO] pickers.preview = true

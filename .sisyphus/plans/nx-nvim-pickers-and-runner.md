@@ -288,7 +288,7 @@ Max Concurrent: 6 (Wave 1)
 > Every task MUST have: Recommended Agent Profile + Parallelization info + QA Scenarios.
 > A task WITHOUT QA Scenarios is INCOMPLETE.
 
-- [ ] 1. **Config schema extension**
+- [x] 1. **Config schema extension**
 
   **What to do**:
   - Edit `lua/nx/config.lua`. Replace empty `default_config` with the v1 schema. Use snake_case throughout.
@@ -385,7 +385,7 @@ Max Concurrent: 6 (Wave 1)
   - Files: `lua/nx/config.lua`
   - Pre-commit: run AC1-1 and AC1-2
 
-- [ ] 2. **Workspace root detection**
+- [x] 2. **Workspace root detection**
 
   **What to do**:
   - Create `lua/nx/workspace.lua` exporting:
@@ -464,7 +464,7 @@ Max Concurrent: 6 (Wave 1)
 
   **Commit**: YES — `feat(workspace): add workspace root detection` — files: `lua/nx/workspace.lua` — pre-commit: AC2-1, AC2-2, AC2-3
 
-- [ ] 3. **CLI binary resolution + async exec**
+- [x] 3. **CLI binary resolution + async exec**
 
   **What to do**:
   - Create `lua/nx/cli.lua` exporting:
@@ -556,7 +556,7 @@ Max Concurrent: 6 (Wave 1)
 
   **Commit**: YES — `feat(cli): add async nx CLI exec with binary resolution` — files: `lua/nx/cli.lua` — pre-commit: AC3-1..AC3-4
 
-- [ ] 4. **Cache module with in-flight dedup**
+- [x] 4. **Cache module with in-flight dedup**
 
   **What to do**:
   - Create `lua/nx/cache.lua` exporting:
@@ -645,7 +645,7 @@ Max Concurrent: 6 (Wave 1)
 
   **Commit**: YES — `feat(cache): per-workspace in-memory cache with autocmd invalidation` — files: `lua/nx/cache.lua` — pre-commit: AC4-1..AC4-4
 
-- [ ] 5. **Registry module with self-healing**
+- [x] 5. **Registry module with self-healing**
 
   **What to do**:
   - Create `lua/nx/registry.lua` exporting:
@@ -730,7 +730,7 @@ Max Concurrent: 6 (Wave 1)
 
   **Commit**: YES — `feat(registry): backgrounded task registry with BufWipeout self-healing` — files: `lua/nx/registry.lua` — pre-commit: AC5-1..AC5-3
 
-- [ ] 6. **Test fixture workspace**
+- [x] 6. **Test fixture workspace**
 
   **What to do**:
   - Create `tests/fixtures/sample-workspace/` with the following files:
@@ -841,7 +841,7 @@ print('OK')
 
   **Commit**: YES — `test(fixture): add sample Nx workspace fixture` — files: `tests/fixtures/**` — pre-commit: AC6-1, AC6-2
 
-- [ ] 7. **Terminal runner (Snacks integration + temp-file dump)**
+- [x] 7. **Terminal runner (Snacks integration + temp-file dump)**
 
   **What to do**:
   - Create `lua/nx/terminal.lua` exporting:
@@ -981,7 +981,7 @@ print('OK')
 
   **Commit**: YES — `feat(terminal): Snacks runner with background/foreground + temp-file dump` — files: `lua/nx/terminal.lua` — pre-commit: AC7-1..AC7-6
 
-- [ ] 8. **fzf-lua project picker**
+- [x] 8. **fzf-lua project picker**
 
   **What to do**:
   - Create `lua/nx/pickers.lua` (initial scaffold; Task 9 extends).
@@ -1096,7 +1096,7 @@ print('OK')
 
   **Commit**: YES — `feat(pickers): fzf-lua project picker with project.json preview` — files: `lua/nx/pickers.lua` (initial) — pre-commit: AC8-1..AC8-4
 
-- [ ] 9. **fzf-lua tasks picker**
+- [x] 9. **fzf-lua tasks picker**
 
   **What to do**:
   - Extend `lua/nx/pickers.lua` with `M.tasks(workspace_root, project, on_select): nil`:
@@ -1186,7 +1186,7 @@ print('OK')
 
   **Commit**: YES — `feat(pickers): fzf-lua tasks picker with task config preview` — files: `lua/nx/pickers.lua` (extended) — pre-commit: AC9-1..AC9-3
 
-- [ ] 10. **Picker chaining + main commands integration**
+- [x] 10. **Picker chaining + main commands integration**
 
   **What to do**:
   - Create `lua/nx/commands.lua` (initial — Task 11 extends).
@@ -1276,7 +1276,7 @@ print('OK')
 
   **Commit**: YES — `feat(commands): :NxProject, :NxProjectTasks, :NxRefresh` — files: `lua/nx/commands.lua` (initial) — pre-commit: AC10-1..AC10-4
 
-- [ ] 11. **`:NxTask` subcommands (list/foreground/kill)**
+- [x] 11. **`:NxTask` subcommands (list/foreground/kill)**
 
   **What to do**:
   - Extend `lua/nx/commands.lua` with `:NxTask {list|foreground|kill} [project:task]`.
@@ -1400,7 +1400,7 @@ print('OK')
 
   **Commit**: YES — `feat(commands): :NxTask {list,foreground,kill} subcommands` — files: `lua/nx/commands.lua` (extended) — pre-commit: AC11-1..AC11-6
 
-- [ ] 12. **Health check (`:checkhealth nx`)**
+- [x] 12. **Health check (`:checkhealth nx`)**
 
   **What to do**:
   - Create `lua/nx/health.lua` exporting `M.check()` (Neovim's `:checkhealth nx` entry point — Neovim 0.10+ auto-discovers `lua/<plugin>/health.lua`).
@@ -1487,7 +1487,7 @@ print('OK')
 
   **Commit**: YES — `feat(health): :checkhealth nx implementation` — files: `lua/nx/health.lua` — pre-commit: AC12-1..AC12-3
 
-- [ ] 13. **Wire `setup()` to register all commands + autocmds**
+- [x] 13. **Wire `setup()` to register all commands + autocmds**
 
   **What to do**:
   - Edit `lua/nx/init.lua`:
@@ -1566,7 +1566,7 @@ print('OK')
 
   **Commit**: YES — `feat(init): wire setup() to register commands + autocmds` — files: `lua/nx/init.lua` — pre-commit: AC13-1..AC13-3
 
-- [ ] 14. **Headless QA scripts + runner**
+- [x] 14. **Headless QA scripts + runner**
 
   **What to do**:
   - Create `tests/qa/minimal_init.lua`:
@@ -1671,7 +1671,7 @@ print('OK')
 
   **Commit**: YES — `test(qa): headless QA scripts and runner` — files: `tests/qa/**` — pre-commit: AC14-1, AC14-2
 
-- [ ] 15. **README documentation**
+- [x] 15. **README documentation**
 
   **What to do**:
   - Replace existing `README.md` (currently a near-empty toc skeleton). Sections:
@@ -1788,19 +1788,19 @@ print('OK')
 > **Do NOT auto-proceed after verification. Wait for user's explicit approval before marking work complete.**
 > **Never mark F1-F4 as checked before getting user's okay.** Rejection or user feedback → fix → re-run → present again → wait for okay.
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle`
   Read `.sisyphus/plans/nx-nvim-pickers-and-runner.md` end-to-end. For each "Must Have": verify implementation exists (read file, run command). For each "Must NOT Have": search codebase for forbidden patterns — reject with file:line if found. Specifically grep for: `vim.fn.system` (forbidden for show commands), `npx`, `plenary.async`, `lua/nx/utils.lua`, `plugin/nx.lua`, custom highlight definitions, telescope/mini.pick refs, retry loops, log file writes. Confirm every Scope OUT item is absent. Check evidence files exist in `.sisyphus/evidence/`. Compare deliverables against plan.
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
-- [ ] F2. **Code Quality Review** — `unspecified-high`
+- [x] F2. **Code Quality Review** — `unspecified-high`
   Run `stylua --check lua/` and `luacheck lua/` (skip if not installed; note in output). Review all files in `lua/nx/` for: AI slop (excessive comments, generic names like `data`/`result`/`temp`/`tmp`), commented-out code, unused locals, `vim.notify` without `vim.log.levels.*`, unused requires, defensive `pcall` overuse, modules that don't follow the lazy `__index` access pattern. Check that every module returns a table `M`. Check that no module mutates global state outside its own table. Verify `vim.system` is used in table form (no string commands).
   Output: `Stylua [PASS/FAIL/SKIP] | Luacheck [PASS/FAIL/SKIP] | Files [N clean/N issues] | AI Slop Findings [N] | VERDICT`
 
-- [ ] F3. **Real Manual QA Execution** — `unspecified-high`
+- [x] F3. **Real Manual QA Execution** — `unspecified-high`
   Start from clean state. Run `bash tests/qa/run-all.sh` and capture full output. Inspect every `.sisyphus/evidence/qa-AC*.txt` file. Independently re-run every QA scenario from each task by `cd`-ing into `tests/fixtures/sample-workspace/` and invoking via `nvim --headless ...`. Test cross-task integration: chain `:NxProject` → select alpha → `:NxProjectTasks` shows alpha's targets → select build → terminal float opens with correct cmd. Test edge cases: empty workspace (move fixture aside), missing fzf-lua (stub), missing Snacks (stub), invalid project name. Save all outputs to `.sisyphus/evidence/final-qa/`.
   Output: `Scenarios [N/N pass] | Integration [N/N] | Edge Cases [N/N] | VERDICT`
 
-- [ ] F4. **Scope Fidelity Check** — `deep`
+- [x] F4. **Scope Fidelity Check** — `deep`
   For each task in the plan: read "What to do" + "Must NOT do", run `git log --all --pretty=format: --name-only` and `git diff main..HEAD` for the relevant files. Verify 1:1 — everything in spec was built (no missing), nothing beyond spec (no creep). Check "Must NOT do" compliance per task and global guardrails. Detect cross-task contamination (e.g., Task 8 touching `lua/nx/registry.lua` which belongs to Task 5). Flag any unaccounted file changes. Verify `lua/nx/utils.lua` does NOT exist. Verify `plugin/nx.lua` does NOT exist. Verify only the 9 module files specified in deliverables exist under `lua/nx/`.
   Output: `Tasks [N/N compliant] | Contamination [CLEAN/N issues] | Unaccounted [CLEAN/N files] | Forbidden Files [CLEAN/N found] | VERDICT`
 

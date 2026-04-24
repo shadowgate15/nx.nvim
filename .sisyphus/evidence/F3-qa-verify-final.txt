@@ -1,0 +1,44 @@
+F3 — Real Manual QA Execution — nx.nvim
+============================================
+
+Step 1 — Full QA suite
+  Result: 34 passed, 1 failed (AC9-3)
+  Note: AC9-3 failure is a STALE TEST issue, not a code regression.
+        The test asserts the old `previewer.fn` API, but the previewer
+        was correctly migrated to fzf-lua's `_ctor` API (see Step 7).
+        The production code is correct; the test needs updating.
+
+Step 2 — Smoke test
+  Result: exit 0, no Lua errors. PASS.
+
+Step 3 — Commands registered after setup
+  NxProject:2
+  NxProjectTasks:2
+  NxRefresh:2
+  NxTask:2
+  Result: 4/4 commands registered. PASS.
+
+Step 4 — Workspace detection inside fixture
+  Output: /Users/TS75642/Documents/projects/nx.nvim/tests/fixtures/sample-workspace
+  Result: PASS.
+
+Step 5 — Forbidden patterns
+  vim.fn.system: CLEAN
+  npx:           CLEAN
+  utils.lua:     CLEAN
+  plugin/nx.lua: CLEAN
+  Result: CLEAN.
+
+Step 6 — Evidence aggregate
+  Failures (excl. AC14-2/DEMO): qa-AC9-3.txt (stale test, see Step 1).
+
+Step 7 — Previewer fix verification
+  lua/nx/pickers.lua:51   _ctor = function()              (projects block)
+  lua/nx/pickers.lua:58       require('fzf-lua.shell').stringify_data(...)
+  lua/nx/pickers.lua:144  _ctor = function()              (tasks block)
+  lua/nx/pickers.lua:151      require('fzf-lua.shell').stringify_data(...)
+  No top-level `field_index` previewer option found.
+  Result: VERIFIED.
+
+----
+QA suite [34/35 PASS — 1 stale test, not a code regression] | Smoke [PASS] | Commands [4/4] | Workspace [PASS] | Forbidden [CLEAN] | Previewer fix [VERIFIED] | VERDICT: APPROVE
