@@ -42,13 +42,22 @@ function M.run(workspace_root, project, task)
   local runner_win = (conf_ok and conf.runner and conf.runner.win) or {}
   local bg_keymap = (conf_ok and conf.runner and conf.runner.keymaps and conf.runner.keymaps.background) or '<C-b>'
 
+  -- Snacks drops `footer` when border == 'none' or on Neovim < 0.10 (graceful degrade).
+  local footer_hint = string.format(' %s background  q hide  :NxTask kill ', bg_keymap)
+
   local term = snacks.terminal(
     cmd,
     vim.tbl_deep_extend('force', {
       cwd = workspace_root,
       interactive = true,
       auto_close = false,
-      win = vim.tbl_deep_extend('force', { position = 'float', style = 'terminal' }, runner_win),
+      win = vim.tbl_deep_extend('force', {
+        position = 'float',
+        style = 'terminal',
+        border = 'rounded',
+        footer = footer_hint,
+        footer_pos = 'center',
+      }, runner_win),
     }, {})
   )
 

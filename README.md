@@ -69,10 +69,13 @@ require('nx').setup({
 
 ### Inside the task float
 
+The float's border footer always shows the available keymaps (e.g. ` <C-b> background  q hide  :NxTask kill `) so you don't have to memorise them.
+
 | Keymap | Action |
 |---|---|
 | `q` | Hide the float (Snacks default). Task keeps running in the background. |
 | `<C-b>` (configurable) | Explicit background: hide the float, keep the task running. |
+| `:NxTask kill project:task` | Stop a running task (no in-float binding by design — see [Configuration](#configuration)). |
 
 ## Configuration
 
