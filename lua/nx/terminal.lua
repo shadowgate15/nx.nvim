@@ -146,7 +146,7 @@ function M.foreground(workspace_root, project, task)
 
     local ok, snacks = pcall(require, 'snacks')
     if ok and snacks.win then
-      snacks.win({ file = entry.output_file, win = { style = 'float' } })
+      snacks.win.new({ file = entry.output_file, style = 'float' })
     else
       vim.cmd('split ' .. vim.fn.fnameescape(entry.output_file))
       vim.bo.readonly = true
