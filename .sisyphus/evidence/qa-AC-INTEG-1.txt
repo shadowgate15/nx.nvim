@@ -1,1 +1,1 @@
-PASS: AC-INTEG-1
+FAIL: AC-INTEG-1 :: fzf_calls=1 terminal_calls=0 cmd=nil
