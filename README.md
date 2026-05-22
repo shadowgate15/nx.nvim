@@ -99,6 +99,15 @@ The float's border footer always shows the available keymaps (e.g. ` <C-b> backg
 | `<C-b>` (configurable) | Explicit background: hide the float, keep the task running. |
 | `:NxTask kill project:task` | Stop a running task (no in-float binding by design — see [Configuration](#configuration)). |
 
+**Mouse handling.** The Nx CLI's task TUI ([Rust + ratatui/crossterm](https://github.com/nrwl/nx/blob/main/packages/nx/src/native/tui/tui.rs)) ignores mouse events entirely — it only listens for keyboard input. In standalone iTerm2/Alacritty/Ghostty, the terminal emulator transparently converts mouse-wheel ticks into arrow-key presses when an app is on the alternate screen, which is why scrolling appears to "just work" outside Neovim. Neovim's `:terminal` does not do this conversion, so without help the wheel scrolls the Vim viewport instead of the TUI.
+
+nx.nvim's task float installs buffer-local terminal-mode keymaps that:
+
+- translate `<ScrollWheelUp>` / `<ScrollWheelDown>` into Up / Down arrow keys sent to the PTY (count taken from `vim.o.mousescroll`'s `ver:N` field, default 3);
+- swallow `<LeftMouse>`, `<LeftDrag>`, `<LeftRelease>`, right- and middle-button events so a stray click on the float doesn't move the Vim cursor or steal focus from the TUI.
+
+Set `runner.forward_mouse = false` to disable both behaviors and restore Neovim's default mouse handling inside the float.
+
 ## Configuration
 
 Call `require('nx').setup({})` with any of these options:
@@ -126,6 +135,10 @@ require('nx').setup({
     },
     -- Pass-through table for Snacks.terminal win options
     win = {},
+    -- Translate mouse wheel over the task float into Up/Down arrow keys
+    -- (the Nx TUI's only scroll input). Mouse clicks/drags are swallowed
+    -- so they don't steal focus from the TUI. See "Inside the task float".
+    forward_mouse = true,
   },
   pickers = {
     -- Show a preview pane with project/task JSON config

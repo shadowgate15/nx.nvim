@@ -2,6 +2,59 @@
 
 local M = {}
 
+local SWALLOW_MOUSE_LHS = {
+  '<LeftMouse>',
+  '<LeftDrag>',
+  '<LeftRelease>',
+  '<2-LeftMouse>',
+  '<3-LeftMouse>',
+  '<4-LeftMouse>',
+  '<RightMouse>',
+  '<RightDrag>',
+  '<RightRelease>',
+  '<MiddleMouse>',
+  '<MiddleDrag>',
+  '<MiddleRelease>',
+}
+
+local function mousescroll_lines()
+  local spec = vim.o.mousescroll or ''
+  local n = tonumber(spec:match('ver:(%d+)'))
+  if not n or n < 1 then
+    return 3
+  end
+  return n
+end
+
+local function install_mouse_forwarding(bufnr)
+  local function send_arrows(seq)
+    return function()
+      local job_id = vim.b[bufnr].terminal_job_id
+      if not job_id or job_id <= 0 then
+        return
+      end
+      local pos = vim.fn.getmousepos()
+      local target_win_ok = pos.winid ~= 0
+        and vim.api.nvim_win_is_valid(pos.winid)
+        and vim.api.nvim_win_get_buf(pos.winid) == bufnr
+      if not target_win_ok then
+        return
+      end
+      vim.fn.chansend(job_id, seq:rep(mousescroll_lines()))
+    end
+  end
+
+  local map_opts = { buffer = bufnr, silent = true, nowait = true }
+  vim.keymap.set('t', '<ScrollWheelUp>', send_arrows('\27[A'), map_opts)
+  vim.keymap.set('t', '<ScrollWheelDown>', send_arrows('\27[B'), map_opts)
+  vim.keymap.set('t', '<ScrollWheelLeft>', '<Nop>', map_opts)
+  vim.keymap.set('t', '<ScrollWheelRight>', '<Nop>', map_opts)
+
+  for _, lhs in ipairs(SWALLOW_MOUSE_LHS) do
+    vim.keymap.set('t', lhs, '<Nop>', map_opts)
+  end
+end
+
 --- Run an Nx task in a Snacks terminal float.
 --- Re-foregrounds if already running. Starts fresh if exited.
 --- @param workspace_root string
@@ -93,6 +146,11 @@ function M.run(workspace_root, project, task)
     end
     vim.keymap.set('t', bg_keymap, bg_fn, keymap_opts)
     vim.keymap.set('n', bg_keymap, bg_fn, keymap_opts)
+
+    local forward_mouse = (conf_ok and conf.runner and conf.runner.forward_mouse) ~= false
+    if forward_mouse then
+      install_mouse_forwarding(bufnr)
+    end
 
     vim.api.nvim_create_autocmd('TermClose', {
       buffer = bufnr,

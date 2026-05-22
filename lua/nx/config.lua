@@ -16,6 +16,7 @@
 ---@class (exact) nx.Config.Runner
 ---@field keymaps table<string, string>
 ---@field win table
+---@field forward_mouse boolean
 
 ---@class (exact) nx.Config.Pickers
 ---@field preview boolean
@@ -35,6 +36,7 @@ local default_config = {
       background = '<C-b>',
     },
     win = {},
+    forward_mouse = true,
   },
   pickers = {
     preview = true,
